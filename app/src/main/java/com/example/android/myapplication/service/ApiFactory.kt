@@ -5,37 +5,97 @@ import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
+import okhttp3.logging.HttpLoggingInterceptor
+
 
 object ApiFactory {
-    private val authInterceptor = Interceptor { chain ->
-        val newUrl = chain.request().url()
-            .newBuilder()
-            .build()
 
-        val newRequest = chain.request()
-            .newBuilder()
-            .addHeader("Content-Type", "application/json-patch+json")
-            .addHeader("Accept", "text/plain")
-            .url(newUrl)
-            .build()
+    private const val googleApiBaseUrl = "https://maps.googleapis.com/"
 
-        chain.proceed(newRequest)
+    private fun createBearerTokenInterceptor(token: String?): Interceptor {
+        return Interceptor { chain ->
+            val newUrl = chain.request().url()
+                .newBuilder()
+                .build()
+
+            val newRequest = chain.request()
+                .newBuilder()
+                .addHeader("Authorization", "Bearer $token")
+                .url(newUrl)
+                .build()
+
+            chain.proceed(newRequest)
+        }
     }
 
-    //OkhttpClient for building http request url
-    private val trackingClient = OkHttpClient().newBuilder()
-        .addInterceptor(authInterceptor)
-        .build()
+    private fun createBasicInterceptor(): Interceptor {
+        return Interceptor { chain ->
+            val newUrl = chain.request().url()
+                .newBuilder()
+                .build()
+
+            val newRequest = chain.request()
+                .newBuilder()
+                .addHeader("Content-Type", "application/json-patch+json")
+                .addHeader("Accept", "text/plain")
+                .url(newUrl)
+                .build()
+
+            chain.proceed(newRequest)
+        }
+    }
+
+    fun createBearerService(token: String?): Retrofit {
+        val basicInterceptor = createBasicInterceptor()
+        val bearerTokenInterceptor = createBearerTokenInterceptor(token)
+
+        val bearerClient = OkHttpClient().newBuilder()
+            .addInterceptor(basicInterceptor)
+            .addInterceptor(bearerTokenInterceptor)
+            .addInterceptor(HttpLoggingInterceptor().apply {
+                level = HttpLoggingInterceptor.Level.BODY
+            })
+            .build()
+
+        return Retrofit.Builder()
+            .client(bearerClient)
+            .baseUrl("https://geo-tracking.herokuapp.com/api/")
+            .addConverterFactory(MoshiConverterFactory.create())
+            .addCallAdapterFactory(CoroutineCallAdapterFactory())
+            .build()
+    }
 
 
-    private fun retrofit(): Retrofit = Retrofit.Builder()
-        .client(trackingClient)
-        .baseUrl("https://geo-tracking.herokuapp.com/api/")
-        .addConverterFactory(MoshiConverterFactory.create())
-        .addCallAdapterFactory(CoroutineCallAdapterFactory())
-        .build()
+    fun createBasicService(): Retrofit {
+        val basicInterceptor = createBasicInterceptor()
+        val basicClient = OkHttpClient().newBuilder()
+            .addInterceptor(basicInterceptor)
+            .addInterceptor(HttpLoggingInterceptor().apply {
+                level = HttpLoggingInterceptor.Level.BODY
+            })
+            .build()
 
+        return Retrofit.Builder()
+            .client(basicClient)
+            .baseUrl("https://geo-tracking.herokuapp.com/api/")
+            .addConverterFactory(MoshiConverterFactory.create())
+            .addCallAdapterFactory(CoroutineCallAdapterFactory())
+            .build()
+    }
 
-    val authApi: AuthApi = retrofit().create(AuthApi::class.java)
+    fun createGoogleApiService(): Retrofit {
+        val logClient = OkHttpClient().newBuilder()
+            .addInterceptor(HttpLoggingInterceptor().apply {
+                level = HttpLoggingInterceptor.Level.BODY
+            }).build()
+
+        return Retrofit.Builder()
+            .client(logClient)
+            .baseUrl(googleApiBaseUrl)
+            .addConverterFactory(MoshiConverterFactory.create())
+            .build()
+    }
+
+    fun <T> createApiWithService(retrofit: Retrofit, apiType: Class<T>): T = retrofit.create(apiType)
 }
 
