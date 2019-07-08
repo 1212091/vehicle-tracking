@@ -7,13 +7,10 @@ import retrofit2.http.GET
 import retrofit2.http.Query
 
 interface IGoogleApi {
-
-    @GET("maps/api/directions/json")
-    fun getDirections(
-        @Query("mode") mode: String,
-        @Query("transit_routing_preference") routingPreference: String,
-        @Query("origin") origin: String,
-        @Query("destination") destination: String,
+    @GET("v1/snapToRoads")
+    fun getRoadApiValue(
+        @Query("path") path: String,
+        @Query("interpolate") interpolate: Boolean,
         @Query("key") apiKey: String
     ): Deferred<Response<GoogleMapResponse>>
 }

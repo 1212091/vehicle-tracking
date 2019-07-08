@@ -1,10 +1,12 @@
 package com.example.android.myapplication.repository
 
 import com.example.android.myapplication.model.GoogleMapResponse
+import com.example.android.myapplication.model.Location
 import com.example.android.myapplication.model.LoginRequest
 import com.example.android.myapplication.model.LoginResponse
 import com.example.android.myapplication.service.ApiFactory
 import com.example.android.myapplication.service.AuthApi
+import com.example.android.myapplication.service.GeoApi
 import com.example.android.myapplication.service.IGoogleApi
 
 class LoginRepository : BaseRepository() {
@@ -30,13 +32,33 @@ class LoginRepository : BaseRepository() {
         )!!
     }
 
-    suspend fun getGoogleApiData(mode: String, routingPreference: String, origin: String, destination: String, apiKey: String): GoogleMapResponse {
+    suspend fun getGoogleApiData(path: String, interpolate: Boolean, apiKey: String): GoogleMapResponse {
         val googleApi = ApiFactory.createApiWithService(ApiFactory.createGoogleApiService(), IGoogleApi::class.java)
         return safeApiCall(
             call = {
-                googleApi.getDirections(mode, routingPreference, origin, destination, apiKey).await()
+                googleApi.getRoadApiValue(path, interpolate, apiKey).await()
             },
             errorMessage = "Cannot get Google API data"
+        )!!
+    }
+
+    suspend fun saveCurrentLocation(location: Location, token: String?): Location {
+        val bearerApi = ApiFactory.createApiWithService(ApiFactory.createBearerService(token), GeoApi::class.java)
+        return safeApiCall(
+            call = {
+                bearerApi.saveCurrentLocation(location).await()
+            },
+            errorMessage = "Cannot save location"
+        )!!
+    }
+
+    suspend fun getAllTrackingPoints(token: String?): List<Location> {
+        val bearerApi = ApiFactory.createApiWithService(ApiFactory.createBearerService(token), GeoApi::class.java)
+        return safeApiCall(
+            call = {
+                bearerApi.getAllTrackingPoints().await()
+            },
+            errorMessage = "Cannot save location"
         )!!
     }
 }

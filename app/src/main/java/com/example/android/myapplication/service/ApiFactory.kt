@@ -10,7 +10,8 @@ import okhttp3.logging.HttpLoggingInterceptor
 
 object ApiFactory {
 
-    private const val googleApiBaseUrl = "https://maps.googleapis.com/"
+    private const val googleApiBaseUrl = "https://roads.googleapis.com/"
+    private const val geoTrackingApiBaseUrl = "https://geo-tracking.herokuapp.com/api/"
 
     private fun createBearerTokenInterceptor(token: String?): Interceptor {
         return Interceptor { chain ->
@@ -59,7 +60,7 @@ object ApiFactory {
 
         return Retrofit.Builder()
             .client(bearerClient)
-            .baseUrl("https://geo-tracking.herokuapp.com/api/")
+            .baseUrl(geoTrackingApiBaseUrl)
             .addConverterFactory(MoshiConverterFactory.create())
             .addCallAdapterFactory(CoroutineCallAdapterFactory())
             .build()
@@ -77,7 +78,7 @@ object ApiFactory {
 
         return Retrofit.Builder()
             .client(basicClient)
-            .baseUrl("https://geo-tracking.herokuapp.com/api/")
+            .baseUrl(geoTrackingApiBaseUrl)
             .addConverterFactory(MoshiConverterFactory.create())
             .addCallAdapterFactory(CoroutineCallAdapterFactory())
             .build()
@@ -93,6 +94,7 @@ object ApiFactory {
             .client(logClient)
             .baseUrl(googleApiBaseUrl)
             .addConverterFactory(MoshiConverterFactory.create())
+            .addCallAdapterFactory(CoroutineCallAdapterFactory())
             .build()
     }
 
