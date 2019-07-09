@@ -21,10 +21,15 @@ import com.example.android.myapplication.model.Location
 import com.google.android.gms.location.*
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.maps.model.*
+import com.google.android.gms.maps.model.JointType.ROUND
 import com.google.android.gms.maps.model.PolylineOptions
 import com.google.android.gms.maps.model.LatLngBounds
-
-
+import com.google.android.gms.maps.model.SquareCap
+import com.google.android.gms.maps.model.LatLng
+import java.util.*
+import kotlin.collections.ArrayList
+import kotlin.concurrent.fixedRateTimer
+import kotlin.concurrent.timer
 
 
 class MainActivity : AppCompatActivity(), OnMapReadyCallback, View.OnClickListener {
@@ -39,6 +44,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, View.OnClickListen
     private lateinit var locationProviderClient: FusedLocationProviderClient
     private lateinit var locationCallback: LocationCallback
     private var isLocationPermissionAllow: Boolean = false
+    private var previousLocation: LatLng? = null
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -63,6 +69,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, View.OnClickListen
             token = it?.token
             ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), PERMISSION_CODE)
             setUpMap()
+            refreshToken()
         })
     }
 
@@ -84,7 +91,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, View.OnClickListen
     private fun setUpMap() {
         mapFragment = SupportMapFragment.newInstance()
         val fragmentTransaction = supportFragmentManager.beginTransaction()
-        fragmentTransaction.add(R.id.mapLayout, mapFragment, null)
+        fragmentTransaction.add(R.id.mapView, mapFragment, null)
         fragmentTransaction.commit()
         mapFragment.getMapAsync(this)
     }
@@ -97,6 +104,37 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, View.OnClickListen
         map?.isBuildingsEnabled = false
         map?.uiSettings?.isZoomControlsEnabled = true
         locationProviderClient = LocationServices.getFusedLocationProviderClient(this)
+
+        try {
+            locationProviderClient.lastLocation
+                .addOnSuccessListener { location ->
+                    if (location != null) {
+                        val longitude = location.longitude
+                        val latitude = location.latitude
+                        val currentLocation = LatLng(latitude, longitude)
+                        map?.addMarker(
+                            MarkerOptions().position(currentLocation)
+                                .flat(true).icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_car))
+                        )
+                        map?.moveCamera(CameraUpdateFactory.newLatLng(currentLocation))
+                        map?.moveCamera(
+                            CameraUpdateFactory.newCameraPosition(
+                                CameraPosition.Builder()
+                                    .target(map?.cameraPosition?.target)
+                                    .zoom(17f)
+                                    .bearing(30f)
+                                    .tilt(30f)
+                                    .build()
+                            )
+                        )
+                    }
+                }.addOnFailureListener { e ->
+                    Log.d("Map Activity", "Error trying to get last GPS location")
+                }
+        } catch (e: SecurityException) {
+            Log.v("Main Activity", "Permission denied: " + e.message)
+        }
+
     }
 
     override fun onClick(view: View?) {
@@ -109,7 +147,11 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, View.OnClickListen
     private fun unregisterLocationListener() {
         locationProviderClient.removeLocationUpdates(locationCallback)
         map?.clear()
+        binding.loadingView.visibility = View.VISIBLE
+        binding.mapView.visibility = View.INVISIBLE
         loginViewModel.getAllTrackingPoints(token).observe(this, Observer {
+            binding.loadingView.visibility = View.INVISIBLE
+            binding.mapView.visibility = View.VISIBLE
             val latLngList = ArrayList<LatLng>()
             val bounds = LatLngBounds.Builder()
             for (point in it!!) {
@@ -117,8 +159,21 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, View.OnClickListen
                 bounds.include(latLng)
                 latLngList.add(latLng)
             }
-            map?.addPolyline(PolylineOptions().addAll(latLngList).color(Color.BLUE))
+            val polyLineOptions = PolylineOptions().apply {
+                color(Color.BLACK)
+                width(6f)
+                startCap(SquareCap())
+                endCap(SquareCap())
+                jointType(ROUND)
+            }
+            map?.addPolyline(polyLineOptions.addAll(latLngList))
             map?.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds.build(), 0))
+            if (latLngList.isNotEmpty()) {
+                map?.addMarker(
+                    MarkerOptions().position(latLngList.lastOrNull() ?: LatLng(0.0, 0.0))
+                        .flat(true).icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_car))
+                )
+            }
         })
         binding.stopButton.isEnabled = false
         binding.startButton.isEnabled = true
@@ -127,8 +182,8 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, View.OnClickListen
     private fun registerLocationListener() {
         try {
             val locationRequest = LocationRequest.create()?.apply {
-                interval = 5000
-                fastestInterval = 5000
+                interval = 3000
+                fastestInterval = 3000
                 priority = LocationRequest.PRIORITY_HIGH_ACCURACY
             }
 
@@ -142,7 +197,13 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, View.OnClickListen
                         polyLineList?.add(currentLocation)
                         map?.clear()
                         loginViewModel.saveCurrentLocation(Location(latitude, longitude), token)
-                        map?.addMarker(MarkerOptions().position(currentLocation).flat(true).icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_car)))
+                        val marker = map?.addMarker(
+                            MarkerOptions().position(currentLocation)
+                                .flat(true).icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_car))
+                        )
+                        if (previousLocation != null) {
+                            marker?.rotation = getBearing(previousLocation!!, currentLocation)
+                        }
                         map?.moveCamera(CameraUpdateFactory.newLatLng(currentLocation))
                         map?.moveCamera(
                             CameraUpdateFactory.newCameraPosition(
@@ -150,10 +211,11 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, View.OnClickListen
                                     .target(map?.cameraPosition?.target)
                                     .zoom(17f)
                                     .bearing(30f)
-                                    .tilt(45f)
+                                    .tilt(30f)
                                     .build()
                             )
                         )
+                        previousLocation = currentLocation
                     }
                 }
             }
@@ -163,5 +225,31 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, View.OnClickListen
         }
         binding.startButton.isEnabled = false
         binding.stopButton.isEnabled = true
+    }
+
+    private fun getBearing(begin: LatLng, end: LatLng): Float {
+        val lat = Math.abs(begin.latitude - end.latitude)
+        val lng = Math.abs(begin.longitude - end.longitude)
+
+        if (begin.latitude < end.latitude && begin.longitude < end.longitude)
+            return Math.toDegrees(Math.atan(lng / lat)).toFloat()
+        else if (begin.latitude >= end.latitude && begin.longitude < end.longitude)
+            return (90 - Math.toDegrees(Math.atan(lng / lat)) + 90).toFloat()
+        else if (begin.latitude >= end.latitude && begin.longitude >= end.longitude)
+            return (Math.toDegrees(Math.atan(lng / lat)) + 180).toFloat()
+        else if (begin.latitude < end.latitude && begin.longitude >= end.longitude)
+            return (90 - Math.toDegrees(Math.atan(lng / lat)) + 270).toFloat()
+        return -1f
+    }
+
+    private fun refreshToken() {
+        val self = this
+        fixedRateTimer("default", false, initialDelay = 5000, period = 60000) {
+            Log.v("Map Activity", "Refresh data")
+            loginViewModel.refreshToken(token).observe(self, Observer {
+                token = it?.token
+            })
+        }
+        //
     }
 }

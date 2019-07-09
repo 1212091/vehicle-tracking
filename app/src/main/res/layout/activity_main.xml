@@ -22,19 +22,27 @@
                     android:layout_width="wrap_content"
                     android:layout_weight="1"
                     android:text="Stop Tracking"/>
-
-            <Button
-                    android:id="@+id/path_button"
-                    android:layout_height="wrap_content"
-                    android:layout_width="wrap_content"
-                    android:layout_weight="1"
-                    android:text="See path"/>
         </LinearLayout>
 
         <FrameLayout
                 android:id="@+id/mapLayout"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"/>
+                android:layout_height="match_parent">
+
+            <com.google.android.gms.maps.MapView
+                    android:id="@+id/mapView"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent" />
+
+            <ProgressBar
+                    android:id="@+id/loadingView"
+                    style="@style/ProgressBar"
+                    android:visibility="invisible"
+                    android:layout_width="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_height="wrap_content" />
+
+        </FrameLayout>
 
     </LinearLayout>
 </layout>
