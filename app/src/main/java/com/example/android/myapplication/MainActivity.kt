@@ -26,10 +26,8 @@ import com.google.android.gms.maps.model.PolylineOptions
 import com.google.android.gms.maps.model.LatLngBounds
 import com.google.android.gms.maps.model.SquareCap
 import com.google.android.gms.maps.model.LatLng
-import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.concurrent.fixedRateTimer
-import kotlin.concurrent.timer
 
 
 class MainActivity : AppCompatActivity(), OnMapReadyCallback, View.OnClickListener {
@@ -41,6 +39,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, View.OnClickListen
     private var token: String? = null
     private var polyLineList: ArrayList<LatLng>? = null
     private val PERMISSION_CODE: Int = 503
+    private val PERMISSION_PHONE: Int = 504
     private lateinit var locationProviderClient: FusedLocationProviderClient
     private lateinit var locationCallback: LocationCallback
     private var isLocationPermissionAllow: Boolean = false
@@ -59,6 +58,36 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, View.OnClickListen
         if (isLocationPermissionAllow) {
             binding.startButton.setOnClickListener(this)
             binding.stopButton.setOnClickListener(this)
+            binding.stopButton.isEnabled = false
+            try {
+                locationProviderClient.lastLocation
+                    .addOnSuccessListener { location ->
+                        if (location != null) {
+                            val longitude = location.longitude
+                            val latitude = location.latitude
+                            val currentLocation = LatLng(latitude, longitude)
+                            map?.addMarker(
+                                MarkerOptions().position(currentLocation)
+                                    .flat(true).icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_car))
+                            )
+                            map?.moveCamera(CameraUpdateFactory.newLatLng(currentLocation))
+                            map?.moveCamera(
+                                CameraUpdateFactory.newCameraPosition(
+                                    CameraPosition.Builder()
+                                        .target(map?.cameraPosition?.target)
+                                        .zoom(17f)
+                                        .bearing(30f)
+                                        .tilt(30f)
+                                        .build()
+                                )
+                            )
+                        }
+                    }.addOnFailureListener { e ->
+                        Log.d("Map Activity", "Error trying to get last GPS location")
+                    }
+            } catch (e: SecurityException) {
+                Log.v("Main Activity", "Permission denied: " + e.message)
+            }
         }
     }
 
@@ -146,7 +175,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, View.OnClickListen
 
     private fun unregisterLocationListener() {
         locationProviderClient.removeLocationUpdates(locationCallback)
-        map?.clear()
         binding.loadingView.visibility = View.VISIBLE
         binding.mapView.visibility = View.INVISIBLE
         loginViewModel.getAllTrackingPoints(token).observe(this, Observer {
@@ -166,13 +194,16 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, View.OnClickListen
                 endCap(SquareCap())
                 jointType(ROUND)
             }
-            map?.addPolyline(polyLineOptions.addAll(latLngList))
-            map?.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds.build(), 0))
             if (latLngList.isNotEmpty()) {
-                map?.addMarker(
-                    MarkerOptions().position(latLngList.lastOrNull() ?: LatLng(0.0, 0.0))
-                        .flat(true).icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_car))
-                )
+                map?.clear()
+                map?.addPolyline(polyLineOptions.addAll(latLngList))
+                map?.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds.build(), 0))
+                if (latLngList.isNotEmpty()) {
+                    map?.addMarker(
+                        MarkerOptions().position(latLngList.lastOrNull() ?: LatLng(0.0, 0.0))
+                            .flat(true).icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_car))
+                    )
+                }
             }
         })
         binding.stopButton.isEnabled = false
