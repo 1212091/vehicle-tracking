@@ -3,87 +3,87 @@
         tools:context=".LoginActivity">
 
     <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@drawable/background">
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/background">
 
 
         <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_centerInParent="true"
-            android:layout_margin="20dp"
-            android:orientation="vertical">
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:layout_margin="20dp"
+                android:orientation="vertical">
 
             <ImageView
-                android:layout_width="150dp"
-                android:layout_height="150dp"
-                android:layout_gravity="center"
-                android:layout_marginBottom="20dp"
-                android:background="@drawable/edit_text_background"
-                android:scaleType="fitCenter"
-                android:src="@drawable/code_android_logo"/>
+                    android:layout_width="120dp"
+                    android:layout_height="120dp"
+                    android:layout_gravity="center"
+                    android:layout_marginBottom="20dp"
+                    android:background="@drawable/edit_text_background"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/car_logo_login"/>
 
 
             <EditText
-                android:id="@+id/username"
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:layout_marginBottom="10dp"
-                android:background="@drawable/edit_text_background"
-                android:drawablePadding="10dp"
-                android:drawableStart="@drawable/ic_user"
-                android:ems="10"
-                android:hint="User Name"
-                android:inputType="textPersonName"
-                android:padding="10dp"
-                android:textColor="@color/white"
-                android:textColorHint="@color/hint_color"
-                android:textSize="21sp"/>
+                    android:id="@+id/clientId"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:layout_marginBottom="10dp"
+                    android:background="@drawable/edit_text_background"
+                    android:drawablePadding="10dp"
+                    android:drawableStart="@drawable/ic_user"
+                    android:ems="10"
+                    android:hint="@string/client_id"
+                    android:inputType="textPersonName"
+                    android:padding="10dp"
+                    android:textColor="@color/white"
+                    android:textColorHint="@color/hint_color"
+                    android:textSize="21sp"/>
 
             <EditText
-                android:id="@+id/password"
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:layout_marginBottom="10dp"
-                android:background="@drawable/edit_text_background"
-                android:drawablePadding="10dp"
-                android:drawableStart="@drawable/ic_password"
-                android:ems="10"
-                android:hint="Password"
-                android:inputType="textPassword"
-                android:padding="10dp"
-                android:textColor="@color/white"
-                android:textColorHint="@color/hint_color"
-                android:textSize="21sp"/>
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="30dp"
-                android:gravity="right"
-                android:text="Forgot password ?"
-                android:textColor="@color/white"/>
+                    android:id="@+id/subscriptionKey"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:layout_marginBottom="10dp"
+                    android:background="@drawable/edit_text_background"
+                    android:drawablePadding="10dp"
+                    android:drawableStart="@drawable/ic_password"
+                    android:ems="10"
+                    android:hint="@string/subscription_key"
+                    android:inputType="textPassword"
+                    android:padding="10dp"
+                    android:textColor="@color/white"
+                    android:textColorHint="@color/hint_color"
+                    android:textSize="21sp"/>
 
             <Button
-                android:id="@+id/login"
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:layout_marginBottom="30dp"
-                android:background="@drawable/button_background"
-                android:text="Log in"
-                android:textAllCaps="false"
-                android:textColor="@color/white"
-                android:textSize="21sp"/>
+                    android:id="@+id/login"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:layout_marginBottom="30dp"
+                    android:background="@drawable/button_background"
+                    android:text="@string/login"
+                    android:textAllCaps="false"
+                    android:textColor="@color/white"
+                    android:textSize="21sp"/>
+
+            <ProgressBar
+                    android:id="@+id/loadingView"
+                    style="@style/ProgressBar"
+                    android:visibility="invisible"
+                    android:layout_width="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_height="wrap_content"/>
 
             <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="10dp"
-                android:gravity="center"
-                android:text="Sign Up"
-                android:textColor="@color/white"
-                android:textSize="21sp"/>
+                    android:id="@+id/wrongPassword"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="5dp"
+                    android:text="@string/wrong_password"
+                    android:visibility="invisible"
+                    android:textColor="@color/colorAccent"/>
         </LinearLayout>
     </RelativeLayout>
 </layout>

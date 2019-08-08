@@ -1,6 +1,7 @@
 package com.example.android.myapplication.model
 
 data class LoginRequest(
-    val clientId: String,
-    val subscriptionKey: String
+    val clientNumber: String,
+    val secretKey: String,
+    val deviceId: String
 )

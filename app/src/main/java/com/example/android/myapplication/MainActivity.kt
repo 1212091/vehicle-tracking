@@ -39,7 +39,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, View.OnClickListen
     private var token: String? = null
     private var polyLineList: ArrayList<LatLng>? = null
     private val PERMISSION_CODE: Int = 503
-    private val PERMISSION_PHONE: Int = 504
     private lateinit var locationProviderClient: FusedLocationProviderClient
     private lateinit var locationCallback: LocationCallback
     private var isLocationPermissionAllow: Boolean = false
@@ -93,13 +92,11 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, View.OnClickListen
 
 
     private fun setUpLogin() {
+        token = intent.getStringExtra(AppConstants.TOKEN)
         loginViewModel = ViewModelProviders.of(this).get(LoginViewModel::class.java)
-        loginViewModel.login().observe(this, Observer {
-            token = it?.token
-            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), PERMISSION_CODE)
-            setUpMap()
-            refreshToken()
-        })
+        ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), PERMISSION_CODE)
+        setUpMap()
+        refreshToken()
     }
 
     override fun onRequestPermissionsResult(

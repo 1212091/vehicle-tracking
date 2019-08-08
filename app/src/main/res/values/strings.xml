@@ -1,4 +1,10 @@
 <resources>
     <string name="app_name">Vehicle Tracking</string>
     <string name="google_maps_key">AIzaSyDXWu4rIC7JDO12bk0Hu1m5AyJJ5z3cOrQ</string>
+    <string name="client_id">Client Id</string>
+    <string name="subscription_key">Subscription Key</string>
+    <string name="login">Log In</string>
+    <string name="client_id_value">af875b1c-27f3-4de4-ad05-7adf4d9f1798</string>
+    <string name="secret_key_value">this_is_subscription_key</string>
+    <string name="wrong_password">Your Client Id or Subscription Key is wrong, please try again</string>
 </resources>

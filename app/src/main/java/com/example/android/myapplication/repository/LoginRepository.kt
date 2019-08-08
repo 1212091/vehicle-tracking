@@ -15,11 +15,11 @@ class LoginRepository : BaseRepository() {
         ApiFactory.createApiWithService(ApiFactory.createBasicService(), AuthApi::class.java)
     }
 
-    suspend fun login(clientId: String, subscriptionKey: String): LoginResponse {
+    suspend fun login(clientNumber: String, secretKey: String, deviceId: String): LoginResponse? {
         return safeApiCall(
-            call = { basicAuthApi.login(LoginRequest(clientId, subscriptionKey)).await() },
+            call = { basicAuthApi.login(LoginRequest(clientNumber, secretKey, deviceId)).await() },
             errorMessage = "Cannot login"
-        )!!
+        )
     }
 
     suspend fun refreshToken(token: String?): LoginResponse {

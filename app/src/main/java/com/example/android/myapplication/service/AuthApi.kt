@@ -8,7 +8,7 @@ import retrofit2.http.Body
 import retrofit2.http.POST
 
 interface AuthApi{
-    @POST("Authentication")
+    @POST("Authentication/DeviceAuthentication")
     fun login(@Body loginRequest: LoginRequest): Deferred<Response<LoginResponse>>
 
     @POST("Authentication/RefreshToken")

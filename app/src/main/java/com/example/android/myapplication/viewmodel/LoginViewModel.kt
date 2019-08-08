@@ -10,10 +10,6 @@ import kotlinx.coroutines.*
 import kotlin.coroutines.CoroutineContext
 
 class LoginViewModel : ViewModel() {
-    private val clientId: String = "af875b1c-27f3-4de4-ad05-7adf4d9f1798"
-
-    private val subscriptionKey: String = "this_is_subscription_key"
-
     private val parentJob = Job()
 
     private val coroutineContext: CoroutineContext
@@ -28,8 +24,6 @@ class LoginViewModel : ViewModel() {
 
     private val refreshLoginLiveData = MutableLiveData<LoginResponse>()
 
-    private val googleApiLiveData = MutableLiveData<GoogleMapResponse>()
-
     private val locationLiveData = MutableLiveData<Location>()
 
     private val trackingLocationList = MutableLiveData<List<Location>>()
@@ -39,11 +33,14 @@ class LoginViewModel : ViewModel() {
         parentJob.cancel()
     }
 
-    fun login(): MutableLiveData<LoginResponse> {
+    fun login(clientNumber: String, secretKey: String, deviceId: String) {
         scope.launch {
-            val loginResponse = repository.login(clientId, subscriptionKey)
+            val loginResponse = repository.login(clientNumber, secretKey, deviceId)
             loginResponseLiveData.postValue(loginResponse)
         }
+    }
+
+    fun getLoginLiveData() : MutableLiveData<LoginResponse> {
         return loginResponseLiveData
     }
 
@@ -69,14 +66,6 @@ class LoginViewModel : ViewModel() {
             trackingLocationList.postValue(locationListResponse)
         }
         return trackingLocationList
-    }
-
-    fun getGoogleApiData(path: String, interpolate: Boolean, apiKey: String): MutableLiveData<GoogleMapResponse> {
-        scope.launch {
-            val googleData = repository.getGoogleApiData(path, interpolate, apiKey)
-            googleApiLiveData.postValue(googleData)
-        }
-        return googleApiLiveData
     }
 
 }
